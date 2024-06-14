@@ -182,7 +182,7 @@ def set_positions(agent_point_prim, positions):
     agent_point_prim.GetPointsAttr().Set(positions)
 
 
-def create_curve(nodes, prim_path="/World/Path"):
+def create_curve(nodes, prim_path="/World/Path", color=(0, 1, 0), width=np.array([1.0], dtype=float) ):
     '''Create and draw a BasisCurve on the stage following the nodes'''
 
     stage = omni.usd.get_context().get_stage()
@@ -198,13 +198,20 @@ def create_curve(nodes, prim_path="/World/Path"):
     type_attr.Set('linear')
     type_attr = prim.GetTypeAttr().Get()
     # Set the width of the curve
-    # width_attr = prim.CreateWidthsAttr()
-    # # width_attr = prim.CreateWidthsAttr(UsdGeom.Tokens.varying)
-    # width_attr.Set(np.array([1.0], dtype=float))
+
+    width_attr = prim.CreateWidthsAttr(width)
+    # width_attr = prim.CreateWidthsAttr(Vt.Vec2fArray(1, [width, width]))
+
+    if len(width) == 1:
+        width =  Vt.FloatArray.FromNumpy(np.asarray([width for x in range(len(nodes))]))
+    else:
+        width = Vt.FloatArray.FromNumpy(width)
+
+    width_attr.Set(width)
 
     # color_primvar = prim.CreateDisplayColorPrimvar(UsdGeom.Tokens.constant)
     UsdGeom.Primvar(prim.GetDisplayColorAttr()).SetInterpolation("constant")
-    prim.GetDisplayColorAttr().Set([(0, 1, 0)])
+    prim.GetDisplayColorAttr().Set([color])
 
 
 

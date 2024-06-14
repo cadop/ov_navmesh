@@ -41,8 +41,9 @@ class SiborgCreateNavmeshExtension(omni.ext.IExt):
 
                 def get_path():
                     # get sample path
-                    path_pnts = self.navmesh.find_paths([self.navmesh.random_points[0]], 
-                                                        [self.navmesh.random_points[1]])
+                    s,e = self.navmesh.get_random_points(2)
+
+                    path_pnts = self.navmesh.find_paths([s], [e])
                     path_pnts = np.asarray(path_pnts).reshape(-1, 3)
 
                     # plot the path
@@ -64,6 +65,9 @@ class SiborgCreateNavmeshExtension(omni.ext.IExt):
                     self.navmesh.get_navmesh_contours()
                     # plot the outline
 
+                def make_outline():
+                    self.navmesh.make_outline()
+
                 def make_walls():
                     self.navmesh.make_walls(self.navmesh.contour_verts, self.navmesh.contour_edges, 3)
 
@@ -80,9 +84,10 @@ class SiborgCreateNavmeshExtension(omni.ext.IExt):
                     ui.Button("Assign Mesh", clicked_fn=assign_mesh)
                     ui.Button("Build Navmesh", clicked_fn=build_navmesh)
                     ui.Button("Get Random Points", clicked_fn=get_random_points)
-                    ui.Button("Get Path", clicked_fn=get_path)
+                    ui.Button("Get Random Path", clicked_fn=get_path)
                     ui.Button("Create Mesh", clicked_fn=visualize_navmesh)
                     ui.Button("Get Outline", clicked_fn=get_outline)
+                    ui.Button("Make Outline", clicked_fn=make_outline)
                     ui.Button("Build Walls", clicked_fn=make_walls)
                     ui.Button("Make Walls", clicked_fn=visualize_walls)
 

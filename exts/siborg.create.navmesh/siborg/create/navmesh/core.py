@@ -1,3 +1,4 @@
+from collections import defaultdict
 import os
 import numpy as np
 import os
@@ -15,6 +16,7 @@ class NavmeshInterface:
         self.input_vert = None
         self.input_tri = None
         self.random_points = None
+        self.wall_outline = []
 
     def get_random_points(self, num_points):
         if not self.built:
@@ -58,6 +60,7 @@ class NavmeshInterface:
         extruded_vertices[:, 1] += height  # Add height to the z-coordinate
         side_triangles = []
 
+        # Go through each edge and create two triangles (square wall)
         for edge in edges:
             i, j = edge
             A = vertices[i]
@@ -71,7 +74,7 @@ class NavmeshInterface:
 
         # Do the welding and extrusion
         self.side_triangles = side_triangles
-
+        # Make faces
         faces = []
         verts = []
         tri = 0
@@ -90,6 +93,54 @@ class NavmeshInterface:
         self.wall_t = t 
 
         return v, t
+
+    def make_outline(self):
+        # Go through the edges and make individual lines, it is what it is
+
+        width = np.array([0.2], dtype=float)
+        color = (0.8,0.8,0.8)
+
+        # contour_edges = np.array(self.contour_edges)
+        # v, inverse_indices = np.unique(self.contour_verts, axis=0, return_inverse=True)
+        # e = inverse_indices[contour_edges.flatten()]
+        # e2 = e.reshape(contour_edges.shape)
+        # e3 = np.sort(e2, axis=1)
+
+        # # Use a set to keep track if a vertex is in the contour
+        # vertex_sets = []
+
+        for idx, edge in enumerate(self.contour_edges):
+            i, j = edge
+            A = self.contour_verts[i]
+            B = self.contour_verts[j]
+            self.wall_outline.append([tuple(A), tuple(B)])
+
+            # for jdx, vertex in enumerate([A, B]):
+            #     if vertex not in vertex_sets:
+            #         vertex_sets.append(vertex)
+
+        # curves = defaultdict(list)
+        # curve_names = []
+
+        # # Traverse edges, append to a list, and make a new list when a discontinuity is found
+        # for idx, edge in enumerate(self.wall_outline):
+        #     # check if the next edge is a discontinuity by it not having the same vertex as the current edge
+        #     if idx == 0:
+        #         curves[idx].extend(edge)
+        #         curve_names.append(idx)
+        #         continue
+        #     if (edge[0] not in curves[curve_names[-1]]) and (edge[1] not in curves[curve_names[-1]]):
+
+        #         curves[idx].extend(edge)
+        #         curve_names.append(idx)
+        #     else:
+        #         curves[curve_names[-1]].extend(edge)
+
+
+        # print(curves)
+
+        for idx, curve in enumerate(self.wall_outline):
+            usd_utils.create_curve(curve, prim_path=f"/World/WallOutline{idx}", width=width, color=color)
 
     def get_selected_prim(self):
         self.stage = omni.usd.get_context().get_stage()
