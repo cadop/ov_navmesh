@@ -140,7 +140,7 @@ class NavmeshInterface:
         # print(curves)
 
         for idx, curve in enumerate(self.wall_outline):
-            usd_utils.create_curve(curve, prim_path=f"/World/WallOutline{idx}", width=width, color=color)
+            usd_utils.create_curve(curve, prim_path=f"/World/Outline/WallOutline{idx}", width=width, color=color)
 
     def get_selected_prim(self):
         self.stage = omni.usd.get_context().get_stage()
@@ -150,9 +150,16 @@ class NavmeshInterface:
         self._selection = self._usd_context.get_selection()
         selected_paths = self._selection.get_selected_prim_paths()
         # Expects a list, so take first selection
-        self.input_prim = [self.stage.GetPrimAtPath(x) for x in selected_paths][0]
+        self.input_prim = [self.stage.GetPrimAtPath(x) for x in selected_paths]
 
-        return self.input_prim
+        self.input_vert, self.input_tri = usd_utils.get_all_stage_mesh(self.stage , self.input_prim)
+
+        if len(self.input_vert) == 0:
+            print('No mesh found')
+            return False
+        
+        self.navmesh.load_mesh(self.input_vert, self.input_tri)
+        return True
 
     def get_navmesh_triangles(self):
         triangles = self.navmesh.get_navmesh_triangles()

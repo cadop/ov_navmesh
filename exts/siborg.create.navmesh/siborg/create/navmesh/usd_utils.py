@@ -47,28 +47,36 @@ def children_as_mesh(stage, parent_prim):
     
     return points, faces
 
-def get_all_stage_mesh(stage):
+
+def get_all_stage_mesh(stage, prims):
 
     found_meshes = []
 
-    # Traverse the scene graph and print the paths of prims, including instance proxies
-    for x in Usd.PrimRange(stage.GetPseudoRoot(), Usd.TraverseInstanceProxies()):
-        if x.IsA(UsdGeom.Mesh):
-            found_meshes.append(x)
+    # For each selected prim, go through its children and figure out if they are meshes
+    for prim in prims:
+        if prim.IsA(UsdGeom.Mesh):
+            found_meshes.append(prim)
+            continue
+        # Traverse the scene graph and print the paths of prims, including instance proxies
+        for x in Usd.PrimRange(prim, Usd.TraverseInstanceProxies()):
+            if x.IsA(UsdGeom.Mesh):
+                found_meshes.append(x)
 
     points, faces = get_mesh(found_meshes)
    
     return points, faces
 
-def get_mesh(obj):
+def get_mesh(objs):
 
     points, faces = [],[]
 
-    f_offset = len(points)
-    f, p = meshconvert(obj)
-    # if len(p) == 0: continue
-    points.extend(p)
-    faces.extend(f+f_offset)
+    for obj in objs:
+        f_offset = len(points)
+        # f, p = convert_to_mesh(obj)#usd_stage.GetPrimAtPath(obj))
+        f, p = meshconvert(obj)#usd_stage.GetPrimAtPath(obj))
+        
+        points.extend(p)
+        faces.extend(f+f_offset)
 
     return points, faces
 
