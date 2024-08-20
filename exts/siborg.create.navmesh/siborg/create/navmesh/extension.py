@@ -4,7 +4,7 @@ from pxr import Gf
 
 from . import core
 from . import usd_utils
-
+from pxr import Usd, UsdGeom
 import numpy as np
 
 from omni.ui import color as cl
@@ -24,7 +24,7 @@ class SiborgCreateNavmeshExtension(omni.ext.IExt):
         
         with self._window.frame:
             with ui.VStack():
-
+                
                 self.navmesh = core.NavmeshInterface()
 
                 def reset_btns():
@@ -43,6 +43,11 @@ class SiborgCreateNavmeshExtension(omni.ext.IExt):
                     # get the selected prim
                     # load the mesh
                     reset_btns()
+
+                    stage = omni.usd.get_context().get_stage()
+                    self.up_axis = UsdGeom.GetStageUpAxis(stage)
+                    self.navmesh.z_up = self.up_axis == UsdGeom.Tokens.z
+
                     if self.navmesh.get_selected_prim():
                         self.assign_btn.style = s_done
                         self.bld_btn.style = s_yellow
@@ -72,7 +77,6 @@ class SiborgCreateNavmeshExtension(omni.ext.IExt):
                     s,e = self.navmesh.get_random_points(2)
 
                     path_pnts = self.navmesh.find_paths([s], [e])
-                    path_pnts = np.asarray(path_pnts).reshape(-1, 3)
 
                     # plot the path
                     usd_utils.create_curve(path_pnts)

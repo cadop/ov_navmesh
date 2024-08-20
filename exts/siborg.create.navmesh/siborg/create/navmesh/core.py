@@ -9,7 +9,7 @@ from . import usd_utils
 import omni.physx
 
 class NavmeshInterface:
-    def __init__(self): 
+    def __init__(self, up_axis='Y'): 
         self.navmesh = rd.Navmesh()
         self.built = False
         self.input_prim = None
@@ -18,15 +18,48 @@ class NavmeshInterface:
         self.random_points = None
         self.wall_outline = []
 
+        # if z_up is true, we will need to do some conversion before sending to 
+        # recast, then, we will convert it back to y_up (all functions will need to do that)
+        if up_axis == 'Z': self.z_up = True
+        else: self.z_up = False  
+
+    def _convert_up_axis(self, vertices, inverse=False):
+        '''
+        Convert all data between navmesh interface and end-user to be in the correct up axis
+
+        pyrecast assumes y-up, so only change when z-up is true
+        inverse = True will convert y-up output back to z-up
+        '''
+        if self.z_up == False:
+            return vertices
+        
+        vertices = np.array(vertices)
+        v_copy = np.copy(vertices)
+        if inverse:
+            # Convert data we have been given in y-up into the z-up of scene (e.g. output from recast)
+            v_copy[:, 0], v_copy[:, 1], v_copy[:, 2] = vertices[:, 0], -vertices[:, 2], vertices[:, 1]
+        else: 
+            # Convert the up axis from Y to Z
+            v_copy[:, 0], v_copy[:, 1], v_copy[:, 2] = vertices[:, 0], vertices[:, 2], -vertices[:, 1]
+
+        vertices = v_copy
+        return vertices
+
     def get_random_points(self, num_points):
         if not self.built:
             return None
         self.random_points = self.navmesh.get_random_points(num_points)
+        
+        # Check if we need to convert the up axis
+        self.random_points = self._convert_up_axis(self.random_points, inverse=True)
+        
         return self.random_points
 
     def load_mesh(self, prim):
         self.input_vert, self.input_tri  = usd_utils.parent_and_children_as_mesh(prim)
         self.input_prim = prim
+        
+        self.input_vert = self._convert_up_axis(self.input_vert)
 
         self.navmesh.load_mesh(self.input_vert, self.input_tri)
 
@@ -35,17 +68,28 @@ class NavmeshInterface:
         self.built = True
 
     def find_paths(self, starts, ends):
+
+        starts = [self._convert_up_axis(starts)]
+        ends = [self._convert_up_axis(ends)]
+
         paths = self.navmesh.find_paths(starts, ends)
-        return paths
+        path_pnts = np.asarray(paths).reshape(-1, 3)
+        path_pnts = self._convert_up_axis(path_pnts, inverse=True)
+
+        return path_pnts
 
     def get_navmesh_raw_contours(self):
         rawvert, rawpolygons, _ = self.navmesh.get_navmesh_raw_contours()
+        rawvert = self._convert_up_axis(rawvert, inverse=True)
         return rawvert, rawpolygons
 
     def get_navmesh_contours(self):
         vert, _, _ = self.navmesh.get_navmesh_contours()
 
         vert = np.asarray(vert).reshape(-1, 3)
+        # Convert if needed
+        vert = self._convert_up_axis(vert, inverse=True)
+        
         edges = [[i, i+1] for i in range(0, len(vert)-1, 2)]
         self.contour_verts = vert
         self.contour_edges = edges
@@ -56,6 +100,7 @@ class NavmeshInterface:
 
         # Extrude the walls up
         vertices = np.array(vertices)  # Ensure vertices are a NumPy array
+        vertices = self._convert_up_axis(vertices)
         extruded_vertices = np.copy(vertices)
         extruded_vertices[:, 1] += height  # Add height to the z-coordinate
         side_triangles = []
@@ -158,6 +203,9 @@ class NavmeshInterface:
             print('No mesh found')
             return False
         
+        #Convert the up axis if needed
+        self.input_vert = self._convert_up_axis(self.input_vert)
+        
         self.navmesh.load_mesh(self.input_vert, self.input_tri)
         return True
 
@@ -177,4 +225,7 @@ class NavmeshInterface:
             t.append([i,i+1,i+2])
         self.navmesh_v = np.array(v, dtype=np.float32)
         self.navmesh_t = np.array(t, dtype=np.int32)
+
+        self.navmesh_v = self._convert_up_axis(self.navmesh_v, inverse=True)
+
         return self.navmesh_v, self.navmesh_t
