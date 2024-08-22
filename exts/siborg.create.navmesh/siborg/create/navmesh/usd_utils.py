@@ -24,12 +24,18 @@ def traverse_instanced_children(prim):
             yield subchild
 
 def parent_and_children_as_mesh(parent_prim):
+
+    if UsdGeom.Imageable(parent_prim).ComputeVisibility() == UsdGeom.Tokens.invisible:
+        return [], []
     if parent_prim.IsA(UsdGeom.Mesh):
         points, faces = get_mesh(parent_prim)
         return points, faces
     
     found_meshes = []
     for x in traverse_instanced_children(parent_prim):
+        # Check if prim is visible in the scene or not
+        if UsdGeom.Imageable(x).ComputeVisibility() == UsdGeom.Tokens.invisible:
+            continue
         if x.IsA(UsdGeom.Mesh):
             found_meshes.append(x)
 
@@ -54,11 +60,16 @@ def get_all_stage_mesh(stage, prims):
 
     # For each selected prim, go through its children and figure out if they are meshes
     for prim in prims:
+        if UsdGeom.Imageable(prim).ComputeVisibility() == UsdGeom.Tokens.invisible:
+            continue
+
         if prim.IsA(UsdGeom.Mesh):
             found_meshes.append(prim)
             continue
         # Traverse the scene graph and print the paths of prims, including instance proxies
         for x in Usd.PrimRange(prim, Usd.TraverseInstanceProxies()):
+            if UsdGeom.Imageable(x).ComputeVisibility() == UsdGeom.Tokens.invisible:
+                continue
             if x.IsA(UsdGeom.Mesh):
                 found_meshes.append(x)
 

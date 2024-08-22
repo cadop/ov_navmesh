@@ -34,7 +34,7 @@ class NavmeshInterface:
             return vertices
         
         vertices = np.array(vertices)
-        v_copy = np.copy(vertices)
+        v_copy = np.empty(shape=vertices.shape)
         if inverse:
             # Convert data we have been given in y-up into the z-up of scene (e.g. output from recast)
             v_copy[:, 0], v_copy[:, 1], v_copy[:, 2] = vertices[:, 0], -vertices[:, 2], vertices[:, 1]
@@ -196,6 +196,7 @@ class NavmeshInterface:
         selected_paths = self._selection.get_selected_prim_paths()
         # Expects a list, so take first selection
         self.input_prim = [self.stage.GetPrimAtPath(x) for x in selected_paths]
+
 
         self.input_vert, self.input_tri = usd_utils.get_all_stage_mesh(self.stage , self.input_prim)
 

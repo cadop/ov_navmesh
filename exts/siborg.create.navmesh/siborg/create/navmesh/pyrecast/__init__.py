@@ -8,6 +8,7 @@ from typing import List, Tuple, Dict, Any
 import numpy as np
 
 from . import PyRecast as rd
+import os
 
 
 
@@ -30,7 +31,6 @@ class Navmesh:
             file_path (str): Path to the file with extension *.obj.
         '''
         self._navmesh.load_obj(file_path)
-
     def load_mesh(self, vertices: List[float], triangles: List[float]) -> None:
         '''
         Load mesh from vertices and triangles.
@@ -40,9 +40,11 @@ class Navmesh:
             triangles (List[float]): List of triangles.
         '''
         # It's not obvious how to pass vertices and triangles to the C++ code.
-        # so instead we make a temporary obj file out of the data and secretely pass that
+        # so instead we make a temporary obj file out of the data and secretly pass that
 
         # Create a temporary obj file in memory
+        # vertices/=100
+
         with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.obj') as temp_file:
             obj_file_path = temp_file.name
             for vertex in vertices:
@@ -57,7 +59,15 @@ class Navmesh:
         obj_file_path = temp_file.name 
         print(f'Temp file path: {obj_file_path}')
 
-        self._navmesh.load_obj(obj_file_path)
+        # Copy the temporary obj file to a real file
+        # Get the directory of the current file
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+
+        # Create the relative path to the real file
+        real_file_path = os.path.join(current_dir, 'file.obj')
+        shutil.copy(obj_file_path, real_file_path)
+
+        self._navmesh.load_obj(real_file_path)
 
     def build_navmesh(self, settings: Dict[str, Any] = {}) -> None:
         '''
