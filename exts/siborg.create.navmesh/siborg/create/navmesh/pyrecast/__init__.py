@@ -9,7 +9,7 @@ import numpy as np
 
 from . import PyRecast as rd
 import os
-
+from . import mesh_utils
 
 
 class Navmesh:
@@ -67,7 +67,11 @@ class Navmesh:
         real_file_path = os.path.join(current_dir, 'file.obj')
         shutil.copy(obj_file_path, real_file_path)
 
-        self._navmesh.load_obj(real_file_path)
+        decimated_mesh = mesh_utils.decimate_mesh(obj_file_path)
+        print(f'Decimated mesh path: {decimated_mesh}')
+
+        self._navmesh.load_obj(decimated_mesh)
+        # self._navmesh.load_obj(obj_file_path)
 
     def build_navmesh(self, settings: Dict[str, Any] = {}) -> None:
         '''
@@ -96,13 +100,13 @@ class Navmesh:
 
         # Define the default settings in a dict
         default_settings = {
-            "cellSize": 0.3,
-            "cellHeight": 0.2,
-            "agentHeight": 2.0,
-            "agentRadius": 0.6,
-            "agentMaxClimb": 0.9,
+            "cellSize": 0.1,
+            "cellHeight": 0.1,
+            "agentHeight": 1.6,
+            "agentRadius": 0.05,
+            "agentMaxClimb": 0.2,
             "agentMaxSlope": 45.0,
-            "regionMinSize": 8,
+            "regionMinSize": 0.5,
             "regionMergeSize": 20,
             "edgeMaxLen": 12.0,
             "edgeMaxError": 1.3,
