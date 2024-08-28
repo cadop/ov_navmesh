@@ -31,7 +31,7 @@ class Navmesh:
             file_path (str): Path to the file with extension *.obj.
         '''
         self._navmesh.load_obj(file_path)
-    def load_mesh(self, vertices: List[float], triangles: List[float]) -> None:
+    def load_mesh(self, vertices: List[float], triangles: List[float], reduce=False) -> None:
         '''
         Load mesh from vertices and triangles.
 
@@ -59,19 +59,21 @@ class Navmesh:
         obj_file_path = temp_file.name 
         print(f'Temp file path: {obj_file_path}')
 
-        # Copy the temporary obj file to a real file
-        # Get the directory of the current file
-        current_dir = os.path.dirname(os.path.abspath(__file__))
+        if reduce:
+            # Copy the temporary obj file to a real file
+            # Get the directory of the current file
+            current_dir = os.path.dirname(os.path.abspath(__file__))
 
-        # Create the relative path to the real file
-        real_file_path = os.path.join(current_dir, 'file.obj')
-        shutil.copy(obj_file_path, real_file_path)
+            # Create the relative path to the real file
+            real_file_path = os.path.join(current_dir, 'file.obj')
+            shutil.copy(obj_file_path, real_file_path)
 
-        decimated_mesh = mesh_utils.decimate_mesh(obj_file_path)
-        print(f'Decimated mesh path: {decimated_mesh}')
+            decimated_mesh = mesh_utils.decimate_mesh(obj_file_path)
+            print(f'Decimated mesh path: {decimated_mesh}')
 
-        self._navmesh.load_obj(decimated_mesh)
-        # self._navmesh.load_obj(obj_file_path)
+            self._navmesh.load_obj(decimated_mesh)
+        else:
+            self._navmesh.load_obj(obj_file_path)
 
     def build_navmesh(self, settings: Dict[str, Any] = {}) -> None:
         '''
