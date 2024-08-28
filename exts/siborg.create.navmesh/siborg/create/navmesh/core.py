@@ -55,13 +55,13 @@ class NavmeshInterface:
         
         return self.random_points
 
-    def load_mesh(self, prim):
+    def load_mesh(self, prim, reduce=False):
         self.input_vert, self.input_tri  = usd_utils.parent_and_children_as_mesh(prim)
         self.input_prim = prim
         
         self.input_vert = self._convert_up_axis(self.input_vert)
 
-        self.navmesh.load_mesh(self.input_vert, self.input_tri)
+        self.navmesh.load_mesh(self.input_vert, self.input_tri, reduce=reduce)
 
     def build_navmesh(self, settings={}):
         self.navmesh.build_navmesh(settings)
@@ -207,7 +207,7 @@ class NavmeshInterface:
         #Convert the up axis if needed
         self.input_vert = self._convert_up_axis(self.input_vert)
         
-        self.navmesh.load_mesh(self.input_vert, self.input_tri)
+        self.navmesh.load_mesh(self.input_vert, self.input_tri, reduce=True)
         return True
 
     def get_navmesh_triangles(self):

@@ -1,5 +1,4 @@
 import shutil
-import pymeshlab
 import os
 import tempfile
 
@@ -8,6 +7,8 @@ def decimate_mesh(obj_file, perc_dec=0.110017):
     Decimate a mesh using pymeshlab.
     Returns the path to the decimated mesh.
     '''
+    import pymeshlab
+
     ms = pymeshlab.MeshSet()
     ms.load_new_mesh(obj_file)
     ms.meshing_decimation_clustering(threshold = pymeshlab.PercentageValue(perc_dec))

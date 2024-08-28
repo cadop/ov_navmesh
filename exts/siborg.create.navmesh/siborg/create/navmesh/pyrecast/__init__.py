@@ -65,7 +65,7 @@ class Navmesh:
             current_dir = os.path.dirname(os.path.abspath(__file__))
 
             # Create the relative path to the real file
-            real_file_path = os.path.join(current_dir, 'file.obj')
+            real_file_path = os.path.join(current_dir, 'navmeshSource.obj')
             shutil.copy(obj_file_path, real_file_path)
 
             decimated_mesh = mesh_utils.decimate_mesh(obj_file_path)
