@@ -28,7 +28,7 @@ def parent_and_children_as_mesh(parent_prim):
     if UsdGeom.Imageable(parent_prim).ComputeVisibility() == UsdGeom.Tokens.invisible:
         return [], []
     if parent_prim.IsA(UsdGeom.Mesh):
-        points, faces = get_mesh(parent_prim)
+        points, faces = get_mesh([parent_prim])
         return points, faces
     
     found_meshes = []
