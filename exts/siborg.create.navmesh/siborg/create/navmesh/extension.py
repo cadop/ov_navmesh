@@ -47,6 +47,8 @@ class SiborgCreateNavmeshExtension(omni.ext.IExt):
                     stage = omni.usd.get_context().get_stage()
                     self.up_axis = UsdGeom.GetStageUpAxis(stage)
                     self.navmesh.z_up = self.up_axis == UsdGeom.Tokens.z
+                    if self.use_decimation.checked:
+                        self.navmesh.decimate = True
 
                     if self.navmesh.get_selected_prim():
                         self.assign_btn.style = s_done
@@ -122,7 +124,11 @@ class SiborgCreateNavmeshExtension(omni.ext.IExt):
 
 
                 with ui.VStack():
-                    self.assign_btn = ui.Button("Assign Mesh", clicked_fn=assign_mesh, style=s_yellow)
+                    with ui.HStack():
+                        self.assign_btn = ui.Button("Assign Mesh", clicked_fn=assign_mesh, style=s_yellow)
+                        ui.Spacer(width=10)
+                        ui.Label("Use Decimation:")
+                        self.use_decimation = ui.CheckBox(checked=False)
                     self.bld_btn = ui.Button("Build Navmesh", clicked_fn=build_navmesh, style=s_red)
                     self.rnd_pnts_btn = ui.Button("Get Random Points", clicked_fn=get_random_points, style=s_red)
                     self.rnd_pth_btn = ui.Button("Get Random Path", clicked_fn=get_path, style=s_red)

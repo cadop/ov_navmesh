@@ -17,6 +17,7 @@ class NavmeshInterface:
         self.input_tri = None
         self.random_points = None
         self.wall_outline = []
+        self.decimate = False
 
         # if z_up is true, we will need to do some conversion before sending to 
         # recast, then, we will convert it back to y_up (all functions will need to do that)
@@ -207,7 +208,7 @@ class NavmeshInterface:
         #Convert the up axis if needed
         self.input_vert = self._convert_up_axis(self.input_vert)
         
-        self.navmesh.load_mesh(self.input_vert, self.input_tri, reduce=True)
+        self.navmesh.load_mesh(self.input_vert, self.input_tri, reduce=self.decimate)
         return True
 
     def get_navmesh_triangles(self):
