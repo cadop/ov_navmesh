@@ -2,6 +2,7 @@
 
 <img width="1868" alt="image" src="https://github.com/user-attachments/assets/646c7cd1-30eb-439b-8131-4f0d9b285484" />
 
+
 ------------------
 
 This extension is mostly designed for showing how to use the features of the navmesh interface.  
@@ -37,3 +38,10 @@ The query for a path is based on a start and end list.  If there are just one st
 
 The extension itself is just a demo, but it should help you get started with integrating the code in your own project. You will probably be best served by using the `Core.py` file, and its corresponding `pyrecast/__init__.py`.  
 There are binaries for windows and linux, for Python 3.10 (which is the python version as of this release).
+
+
+Demo 
+------------
+
+
+https://github.com/user-attachments/assets/dd955e8c-4a09-496a-aed5-985430016dfa
