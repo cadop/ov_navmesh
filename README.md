@@ -1,7 +1,11 @@
 # A Simple Navigation Mesh Extension based on Recast & Detour
 
-<img width="1868" alt="image" src="https://github.com/user-attachments/assets/646c7cd1-30eb-439b-8131-4f0d9b285484" />
 
+<img width="500" alt="image" src="https://github.com/user-attachments/assets/646c7cd1-30eb-439b-8131-4f0d9b285484" />
+
+# Demo
+
+https://github.com/user-attachments/assets/dd955e8c-4a09-496a-aed5-985430016dfa
 
 ------------------
 
@@ -40,8 +44,3 @@ The extension itself is just a demo, but it should help you get started with int
 There are binaries for windows and linux, for Python 3.10 (which is the python version as of this release).
 
 
-Demo 
-------------
-
-
-https://github.com/user-attachments/assets/dd955e8c-4a09-496a-aed5-985430016dfa
