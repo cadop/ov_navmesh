@@ -1,52 +1,46 @@
-# Extension Project Template
-
-This project was automatically generated.
-
-- `app` - It is a folder link to the location of your *Omniverse Kit* based app.
-- `exts` - It is a folder where you can add new extensions. It was automatically added to extension search path. (Extension Manager -> Gear Icon -> Extension Search Path).
-
-Open this folder using Visual Studio Code. It will suggest you to install few extensions that will make python experience better.
-
-Look for "siborg.create.navmesh" extension in extension manager and enable it. Try applying changes to any python files, it will hot-reload and you can observe results immediately.
-
-Alternatively, you can launch your app from console with this folder added to search path and your extension enabled, e.g.:
-
-```
-> app\omni.code.bat --ext-folder exts --enable company.hello.world
-```
-
-# App Link Setup
-
-If `app` folder link doesn't exist or broken it can be created again. For better developer experience it is recommended to create a folder link named `app` to the *Omniverse Kit* app installed from *Omniverse Launcher*. Convenience script to use is included.
-
-Run:
-
-```
-> link_app.bat
-```
-
-If successful you should see `app` folder link in the root of this repo.
-
-If multiple Omniverse apps is installed script will select recommended one. Or you can explicitly pass an app:
-
-```
-> link_app.bat --app create
-```
-
-You can also just pass a path to create link to:
-
-```
-> link_app.bat --path "C:/Users/bob/AppData/Local/ov/pkg/create-2021.3.4"
-```
+# A Simple Navigation Mesh Extension based on Recast & Detour
 
 
-# Sharing Your Extensions
+<img width="500" alt="image" src="https://github.com/user-attachments/assets/646c7cd1-30eb-439b-8131-4f0d9b285484" />
 
-This folder is ready to be pushed to any git repository. Once pushed direct link to a git repository can be added to *Omniverse Kit* extension search paths.
+# Demo
 
-Link might look like this: `git://github.com/[user]/[your_repo].git?branch=main&dir=exts`
+https://github.com/user-attachments/assets/dd955e8c-4a09-496a-aed5-985430016dfa
 
-Notice `exts` is repo subfolder with extensions. More information can be found in "Git URL as Extension Search Paths" section of developers manual.
+------------------
 
-To add a link to your *Omniverse Kit* based app go into: Extension Manager -> Gear Icon -> Extension Search Path
+This extension is mostly designed for showing how to use the features of the navmesh interface.  
+
+1. Create meshes in the scene (don't use, e.g. a 'capsule' prim).
+2. Select the meshes you want included in the navmesh (ctrl+sel)
+3. Click "Assign Mesh"
+4. Click "Build Navmesh"
+
+These are the main steps, you need to select the meshes to include, then assign those meshes.  After this, you can build the navmesh with the default or custom settings. 
+
+To use custom settings, change the sliders in the dropdown and click "Save".  You can then press the "Build Navmesh" button again. 
+
+If you want to see what the navmesh looks like, click on "Create Mesh"
+
+
+To show how to call some of the useful features there are a few buttons:
+- If you want to get random points on the navmesh, click "Get Random Points".  This will query random points on the navmesh and then display them.
+The actual query is as follows, with an input param as the number of points to get:
+
+`s,e = self.navmesh.get_random_points(2)`
+<img width="853" alt="image" src="https://github.com/user-attachments/assets/057e3ecb-4e46-43e0-8f3e-3aea21f3e40e" />
+
+- If you want to get a path, use either the button for a random path, or you can drag and drop a start and end prim into the text fields.
+The query for a path is based on a start and end list.  If there are just one start and one end, it gives one path back, otherwise it will be a list of multiple paths (which is a list of points):
+
+`path_pnts = self.navmesh.find_paths([s], [e])`
+<img width="820" alt="image" src="https://github.com/user-attachments/assets/af1e151c-c51c-4cbc-b165-de2bd0f56659" />
+
+- If you want to get a path between the two prims, the drag-drop into the text field will set them. Then click "Get start end path":
+<img width="1157" alt="image" src="https://github.com/user-attachments/assets/f06ea055-6943-4948-bbe7-ee7c558158ae" />
+ 
+
+The extension itself is just a demo, but it should help you get started with integrating the code in your own project. You will probably be best served by using the `Core.py` file, and its corresponding `pyrecast/__init__.py`.  
+There are binaries for windows and linux, for Python 3.10 (which is the python version as of this release).
+
 
