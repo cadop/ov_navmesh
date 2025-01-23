@@ -13,7 +13,12 @@ class SiborgCreateNavmeshExtension(omni.ext.IExt):
     def on_startup(self, ext_id):
         print("[siborg.create.navmesh] siborg create navmesh startup")
 
-        self._window = ui.Window("Navmesh", width=300, height=300)
+        self._window = ui.Window("Navmesh", width=300, height=600)
+        self.stage = omni.usd.get_context().get_stage()
+        
+        self.navmesh_settings = {}
+        self.start_prim = None
+        self.end_prim = None
 
         # colors 
         s_red = {"background_color": cl(160,0,0)}
@@ -33,11 +38,7 @@ class SiborgCreateNavmeshExtension(omni.ext.IExt):
                     self.rnd_pnts_btn.style = s_red
                     self.rnd_pth_btn.style = s_red
                     self.mesh_btn.style = s_red
-                    self.getout_btn.style = s_red
-                    self.mke_out_btn.style = s_red
-                    self.bld_wall_btn.style = s_red
-                    self.make_wall_btn.style = s_red
-
+                    self.pth_btn.style = s_red
 
                 def assign_mesh():
                     # get the selected prim
@@ -54,12 +55,12 @@ class SiborgCreateNavmeshExtension(omni.ext.IExt):
 
                 def build_navmesh():
                     # build the navmesh
-                    self.navmesh.build_navmesh()
+                    self.navmesh.build_navmesh(settings=self.navmesh_settings)
                     self.bld_btn.style = s_done
                     self.rnd_pnts_btn.style = s_green
                     self.rnd_pth_btn.style = s_green
-                    self.mesh_btn.style = s_yellow    
-                    self.getout_btn.style = s_yellow
+                    self.mesh_btn.style = s_yellow   
+                    self.pth_btn.style = s_green 
 
 
                 def get_random_points():
@@ -95,42 +96,100 @@ class SiborgCreateNavmeshExtension(omni.ext.IExt):
                         print('Navmesh not built')  
                         reset_btns()
 
-                def get_outline():
-                    self.navmesh.get_navmesh_contours()
-                    self.getout_btn.style = s_done
-                    self.mke_out_btn.style = s_yellow
-                    # plot the outline
 
-                def make_outline():
-                    self.navmesh.make_outline()
-                    self.mke_out_btn.style = s_done
+                def get_specific_path():
+
+                    # get sample path
+                    if not self.start_prim or not self.end_prim:
+                        print('No start or end prim')
+                        return
+
+                    time = Usd.TimeCode.Default() # The time at which we compute the bounding box
+    
+                    xform = UsdGeom.Xformable(self.start_prim)
+                    s = xform.ComputeLocalToWorldTransform(time).ExtractTranslation()
+
+                    xform = UsdGeom.Xformable(self.end_prim)
+                    e = xform.ComputeLocalToWorldTransform(time).ExtractTranslation()
+
+                    path_pnts = self.navmesh.find_paths([s], [e])
+                    # plot the path
+                    usd_utils.create_curve(path_pnts)
 
 
-                def make_walls():
-                    self.navmesh.make_walls(self.navmesh.contour_verts, self.navmesh.contour_edges, 3)
-                    self.bld_wall_btn.style = s_done
-                    self.make_wall_btn.style = s_yellow
+                def assign_start_prim(event):
+                    item = event.mime_data
+                    self.start_prim = item
+                    self.startprim_field.model.set_value(item)
+                    self.start_prim = self.stage.GetPrimAtPath(self.start_prim) 
 
-                def visualize_walls():
-                    v = self.navmesh.wall_v.flatten()
-                    t = self.navmesh.wall_t 
-                    # create a usd color of blue with transparency
-                    color = Gf.Vec3f(0.30877593, 0.64968157, 0.18828352)
-                    opacity = 0.89
-                    usd_utils.create_mesh('/World/navmeshwalls', v, t, color, opacity)
-                    self.make_wall_btn.style = s_done
 
+                def assign_end_prim(event):
+                    item = event.mime_data
+                    self.end_prim = item
+                    self.endprim_field.model.set_value(item)
+                    self.end_prim = self.stage.GetPrimAtPath(self.end_prim) 
 
                 with ui.VStack():
                     self.assign_btn = ui.Button("Assign Mesh", clicked_fn=assign_mesh, style=s_yellow)
                     self.bld_btn = ui.Button("Build Navmesh", clicked_fn=build_navmesh, style=s_red)
+                    self.mesh_btn = ui.Button("Create Mesh", clicked_fn=visualize_navmesh, style=s_red)
                     self.rnd_pnts_btn = ui.Button("Get Random Points", clicked_fn=get_random_points, style=s_red)
                     self.rnd_pth_btn = ui.Button("Get Random Path", clicked_fn=get_path, style=s_red)
-                    self.mesh_btn = ui.Button("Create Mesh", clicked_fn=visualize_navmesh, style=s_red)
-                    self.getout_btn = ui.Button("Get Outline", clicked_fn=get_outline, style=s_red)
-                    self.mke_out_btn = ui.Button("Make Outline", clicked_fn=make_outline, style=s_red)
-                    self.bld_wall_btn = ui.Button("Build Walls", clicked_fn=make_walls, style=s_red)
-                    self.make_wall_btn = ui.Button("Make Walls", clicked_fn=visualize_walls, style=s_red)
+                    self.pth_btn = ui.Button("Get Start-End Path", clicked_fn=get_specific_path, style=s_red)
+
+
+                with ui.HStack(height=30):
+                    ui.Label("Start Prim")
+                    self.startprim_field = ui.StringField(tooltip="Start")
+                    self.startprim_field.set_accept_drop_fn(lambda item: True)
+                    self.startprim_field.set_drop_fn(assign_start_prim)
+
+                    ui.Label("End Prim")
+                    self.endprim_field = ui.StringField(tooltip="End")
+                    self.endprim_field.set_accept_drop_fn(lambda item: True)
+                    self.endprim_field.set_drop_fn(assign_end_prim)
+
+
+                def set_settings():
+
+                    self.navmesh_settings['agentHeight'] = self.agent_height_float.get_value_as_float()
+                    self.navmesh_settings['agentRadius'] = self.agent_radius_float.get_value_as_float()
+                    self.navmesh_settings['agentMaxClimb'] = self.agent_step_float.get_value_as_float()
+                    self.navmesh_settings['agentMaxSlope'] = self.agent_slope_float.get_value_as_float()
+
+                def reset_settings():
+                    self.navmesh_settings = {}    
+
+                with ui.VStack():
+                    with ui.CollapsableFrame("Navmesh Settings", collapsed=True):
+                        with ui.VStack():
+                            # Agent Height Slider
+                            ui.Label("Agent Height")
+                            self.agent_height_float = ui.SimpleFloatModel(2.0, min=0, max=100)
+                            ui.FloatSlider(self.agent_height_float, width=200, min=0, max=100, step=0.01)
+                            
+                            # Agent Radius 
+                            ui.Label("Agent Radius")
+                            self.agent_radius_float  = ui.SimpleFloatModel(0.6, min=0,max=100)
+                            ui.FloatSlider(self.agent_radius_float, width=200 ,min=0,max=100,step=0.01)
+
+                            # Max Step 
+                            ui.Label("Max Step")    
+                            self.agent_step_float = ui.SimpleFloatModel(0.9, min=0,max=100)
+                            ui.FloatSlider(self.agent_step_float, width=200 ,min=0,max=100,step=0.01)
+                            
+                            # Max Slope
+                            ui.Label("Max Slope")    
+                            self.agent_slope_float  = ui.SimpleFloatModel(45, min=0,max=89.9)
+                            ui.FloatSlider(self.agent_slope_float , width=200 ,min=0,max=100,step=0.01)
+                            
+
+                    with ui.HStack():
+                        ui.Button("Set Settings", clicked_fn=set_settings)
+                        ui.Button("Reset Settings", clicked_fn=reset_settings)
+
 
     def on_shutdown(self):
         print("[siborg.create.navmesh] siborg create navmesh shutdown")
+        self._window.destroy()
